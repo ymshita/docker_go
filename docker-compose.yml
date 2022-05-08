@@ -1,0 +1,36 @@
+version: "3.8"
+services:
+  app:
+    env_file: ./${APP_DIR}/.env
+    build:
+      context: .
+      dockerfile: ./infra/golang/Dockerfile
+      target: ${TARGET}
+    container_name: ${APP}
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./${APP_DIR}:/go/src/app
+    environment:
+      - APP=${APP}
+      - APP_DIR=${APP_DIR}
+      - APP_PORT=${APP_PORT}
+      - TARGET=${TARGET}
+      - DB=${DB}
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    depends_on:
+      - db
+  db:
+    env_file: ./${APP_DIR}/.env
+    build: ./infra/${DB}
+    container_name: "go_db_${DB}"
+    volumes:
+      - db-store:/var/lib/${DB}
+      - ./infra/${DB}/initdb:/docker-entrypoint-initdb.d
+      - ./infra/${DB}/logs:/var/log/${DB}
+    ports:
+      - ${DB_PORTS}
+volumes:
+  db-store: null
+  db_data: {}
